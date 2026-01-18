@@ -135,3 +135,5 @@ if [[ -d "./.bashrc.d" ]]; then
 	done
 fi
 
+export EDITOR='vim'
+export VISUAL='vim'
