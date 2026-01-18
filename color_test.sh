@@ -14,9 +14,9 @@ elif [ $# -ne 1 ]; then
     echo "Error: Invalid number of arguments: $#" >&2
     echo "Usage: $(basename -- "${BASH_SOURCE[0]}") <text>" >&2
     exit 1
+else
+    TEXT="$*"
 fi
-
-TEXT="$*"
 
 echo "Terminal Color Display Script"
 echo "=============================="
