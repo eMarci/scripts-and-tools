@@ -118,3 +118,4 @@ echo "Reset"
 echo "-----"
 echo -e "\033[0m${TEXT}\033[0m # Reset/Normal (\\\\033[0m)"
 echo ""
+

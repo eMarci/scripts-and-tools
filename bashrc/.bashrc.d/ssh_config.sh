@@ -38,3 +38,4 @@ if [[ $? -ne 0 ]]; then
 	echo "Failed to generate SSH config"
 	return 1
 fi
+
