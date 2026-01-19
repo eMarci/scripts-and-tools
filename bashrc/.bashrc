@@ -137,3 +137,8 @@ fi
 
 export EDITOR='vim'
 export VISUAL='vim'
+
+if ! (git fetch origin && git diff --quiet HEAD origin/main); then
+	echo "There are remote changes in 'scripts-and-tools'"
+fi
+
