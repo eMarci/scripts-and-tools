@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+docker build -t martonendredi/nnn-explorer:latest .
+
