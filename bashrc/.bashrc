@@ -70,9 +70,9 @@ fi
 
 if [ "$color_prompt" = yes ]; then
     PROMPT_COMMAND=set_exit_color
-    PS1='\[${PROMPT_EXIT_COLOR}\]($?)\[\e[0m\] $( printf "%*s" "$(( 3 > ${#?} ? 3-${#?} : 0  ))" "" )${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+    PS1='\[${PROMPT_EXIT_COLOR}\]($?)\[\e[0m\] $( printf "%*s" "$(( 3 > ${#?} ? 3-${#?} : 0  ))" "" )${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@WSL\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 else
-    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+    PS1='${debian_chroot:+($debian_chroot)}\u@WSL:\w\$ '
 fi
 unset color_prompt force_color_prompt
 
@@ -101,7 +101,7 @@ fi
 #export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
 
 # some more ls aliases
-alias ll='ls -alF'
+alias ll='ls -alhF'
 alias la='ls -A'
 alias l='ls -CF'
 
@@ -142,3 +142,20 @@ if ! (git fetch origin && git diff --quiet HEAD origin/main); then
 	echo "There are remote changes in 'scripts-and-tools'"
 fi
 
+export PAGER='less'
+
+rs() {
+    local -a WORDS=()
+    mapfile -t WORDS < <(compgen -W "$(fc -ln -1)")
+    if [[ "${WORDS[0]}" == 'rs' ]]; then
+        echo "Error: trying to run 'rs' as sudo" >&2
+        return 1
+    else
+        if [[ "${WORDS[0]}" == 'sudo' ]]; then
+            echo "Error: last run was already as sudo" >&2
+            return 1
+        else
+            sudo "${WORDS[@]}"
+        fi
+    fi
+}
