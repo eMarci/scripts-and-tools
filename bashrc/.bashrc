@@ -1,24 +1,19 @@
+# If not running interactively, don't do anything
+if [[ $- != *i* ]]; then
+    return
+fi
+
 set_exit_color() {
     local EXIT_CODE="$?"
 
-    if [ $EXIT_CODE -eq 0 ]; then
+    if [[ $EXIT_CODE -eq 0 ]]; then
         PROMPT_EXIT_COLOR=$'\x1b[1;36m' # Bold Cyan
-    elif [ $EXIT_CODE -eq 1 ]; then
+    elif [[ $EXIT_CODE -eq 1 ]]; then
         PROMPT_EXIT_COLOR=$'\x1b[0;91m' # High Intensity Red
     else
         PROMPT_EXIT_COLOR=$'\x1b[0;33m' # Yellow
     fi
 }
-
-# ~/.bashrc: executed by bash(1) for non-login shells.
-# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
-# for examples
-
-# If not running interactively, don't do anything
-case $- in
-    *i*) ;;
-      *) return;;
-esac
 
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
@@ -35,15 +30,11 @@ HISTFILESIZE=2000
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
-# If set, the pattern "**" used in a pathname expansion context will
-# match all files and zero or more directories and subdirectories.
-#shopt -s globstar
-
 # make less more friendly for non-text input files, see lesspipe(1)
-[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+[[ -x /usr/bin/lesspipe ]] && eval "$(SHELL=/bin/sh lesspipe)"
 
 # set variable identifying the chroot you work in (used in the prompt below)
-if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+if [[ -z "${debian_chroot:-}" ]] && [[ -r /etc/debian_chroot ]]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
 
@@ -57,8 +48,8 @@ esac
 # should be on the output of commands, not on the prompt
 #force_color_prompt=yes
 
-if [ -n "$force_color_prompt" ]; then
-    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+if [[ -n "$force_color_prompt" ]]; then
+    if [[ -x /usr/bin/tput ]] && tput setaf 1 >&/dev/null; then
 	# We have color support; assume it's compliant with Ecma-48
 	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
 	# a case would tend to support setf rather than setaf.)
@@ -68,7 +59,7 @@ if [ -n "$force_color_prompt" ]; then
     fi
 fi
 
-if [ "$color_prompt" = yes ]; then
+if [[ "$color_prompt" == yes ]]; then
     PROMPT_COMMAND=set_exit_color
     PS1='\[${PROMPT_EXIT_COLOR}\]($?)\[\e[0m\] $( printf "%*s" "$(( 3 > ${#?} ? 3-${#?} : 0  ))" "" )${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@WSL\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 else
@@ -86,7 +77,7 @@ xterm*|rxvt*)
 esac
 
 # enable color support of ls and also add handy aliases
-if [ -x /usr/bin/dircolors ]; then
+if [[ -x /usr/bin/dircolors ]]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
     #alias dir='dir --color=auto'
@@ -97,24 +88,12 @@ if [ -x /usr/bin/dircolors ]; then
     alias egrep='egrep --color=auto'
 fi
 
-# colored GCC warnings and errors
-#export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
-
-# some more ls aliases
-alias ll='ls -alhF'
-alias la='ls -A'
-alias l='ls -CF'
-
-# Add an "alert" alias for long running commands.  Use like so:
-#   sleep 10; alert
-alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
-
 # Alias definitions.
 # You may want to put all your additions into a separate file like
 # ~/.bash_aliases, instead of adding them here directly.
 # See /usr/share/doc/bash-doc/examples in the bash-doc package.
 
-if [ -f ./.bash_aliases ]; then
+if [[ -f ./.bash_aliases ]]; then
     . ./.bash_aliases
 fi
 
@@ -122,9 +101,9 @@ fi
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
 if ! shopt -oq posix; then
-  if [ -f /usr/share/bash-completion/bash_completion ]; then
+  if [[ -f /usr/share/bash-completion/bash_completion ]]; then
     . /usr/share/bash-completion/bash_completion
-  elif [ -f /etc/bash_completion ]; then
+  elif [[ -f /etc/bash_completion ]]; then
     . /etc/bash_completion
   fi
 fi
@@ -139,64 +118,8 @@ export EDITOR='vim'
 export VISUAL='vim'
 
 if ! (git fetch origin && git diff --quiet HEAD origin/main); then
-	echo "There are remote changes in 'scripts-and-tools'"
+	echo "There are changes in 'scripts-and-tools'"
 fi
 
 export PAGER='less'
 
-rs() {
-    if [[ $1 == '-h' ]]; then
-        cat <<'EOF'
-Re-run last command as `sudo`.
-
-If the last command was an `rs` or `sudo` invocation, the command will fail
-with exit code 1.
-
-Otherwise, the last command is executed with `sudo` prepended.
-
-Options:
-    -h
-        Print this message and exit.
-    -e
-        Run the last non-sudo and non-rs command
-        regardless of where it is in the history.
-
-        Only the last 100 commands are scanned.
-        If there is no applicable command in that
-        range, the command fails with exit code 1.
-EOF
-        return 0
-    fi
-
-    local eager=false
-
-    if [[ $1 == '-f' ]]; then
-        eager=true
-    fi
-
-    local hist_line cmd
-    local -a WORDS
-    while read -r hist_line <&3; do
-        mapfile -t WORDS < <(compgen -W "$hist_line")
-        cmd="${WORDS[0]}"
-        case $cmd in
-            rs)
-                if [[ $eager == false ]]; then
-                    echo "Error: trying to run 'rs' as sudo" >&2
-                    return 1
-                fi
-                ;;
-            sudo)
-                if [[ $eager == false ]]; then
-                    echo "Error: last run was already as sudo" >&2
-                    return 1
-                fi
-                ;;
-            *)
-                echo "sudo ${WORDS[@]}" >&2
-                sudo "${WORDS[@]}"
-                break
-                ;;
-        esac
-    done 3< <(fc -lnr -100)
-}

@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+rs() {
+    if [[ $1 == '-h' ]]; then
+        cat <<'EOF'
+Re-run last command as `sudo`.
+
+If the last command was an `rs` or `sudo` invocation, the command will fail
+with exit code 1.
+
+Otherwise, the last command is executed with `sudo` prepended.
+
+Options:
+    -h
+        Print this message and exit.
+    -e
+        Run the last non-sudo and non-rs command
+        regardless of where it is in the history.
+
+        Only the last 100 commands are scanned.
+        If there is no applicable command in that
+        range, the command fails with exit code 1.
+EOF
+        return 0
+    fi
+
+    local eager=false
+
+    if [[ $1 == '-f' ]]; then
+        eager=true
+    fi
+
+    local hist_line cmd
+    local -a WORDS
+    while read -r hist_line <&3; do
+        mapfile -t WORDS < <(compgen -W "$hist_line")
+        cmd="${WORDS[0]}"
+        case $cmd in
+            rs)
+                if [[ $eager == false ]]; then
+                    echo "Error: trying to run 'rs' as sudo" >&2
+                    return 1
+                fi
+                ;;
+            sudo)
+                if [[ $eager == false ]]; then
+                    echo "Error: last run was already as sudo" >&2
+                    return 1
+                fi
+                ;;
+            *)
+                echo "sudo ${WORDS[@]}" >&2
+                sudo "${WORDS[@]}"
+                break
+                ;;
+        esac
+    done 3< <(fc -lnr -100)
+}
